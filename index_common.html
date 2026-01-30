@@ -23,142 +23,155 @@
   <div id="app" class="card"></div>
 
   <script>
-    // URL例:
-    // index_common.html?data=quiz_ch1.json&title=第1章
-    const params = new URLSearchParams(location.search);
-    const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
-    const pageTitle = params.get("title");
+  // URL例: index_common.html?data=quiz_ch1.json
+  const params = new URLSearchParams(location.search);
+  const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
 
-    if(pageTitle){
-      document.title = `#自主基準クイズ（${pageTitle}）`;
-      document.getElementById("title").textContent = `#自主基準クイズ（${pageTitle}）`;
+  let quiz, headings = null, idx = 0, correct = 0, answered = false;
+
+  const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
+  const app = document.getElementById("app");
+  const titleEl = document.getElementById("title");
+
+  const MARU = [null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+
+  function safeText(s){ return String(s ?? ""); }
+
+  function chapterFromDataUrl(){
+    const m = DATA_URL.match(/quiz_ch(\d+)\.json/);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  function setPageTitle(){
+    const ch = chapterFromDataUrl();
+    if(ch && headings?.chapters?.[String(ch)]){
+      const t = headings.chapters[String(ch)].title || "";
+      const label = t ? `第${ch}章 ${t}` : `第${ch}章`;
+      document.title = `#自主基準クイズ（${label}）`;
+      if(titleEl) titleEl.textContent = `#自主基準クイズ（${label}）`;
+    }else{
+      document.title = "#自主基準クイズ";
+      if(titleEl) titleEl.textContent = "#自主基準クイズ";
     }
+  }
 
-    let quiz, headings = null, idx = 0, correct = 0, answered = false;
+  function getChapterTitle(ch){
+    return headings?.chapters?.[String(ch)]?.title || "";
+  }
+  function getSectionTitle(ch, sec){
+    return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
+  }
 
-    const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
-    const app = document.getElementById("app");
+  function formatRefLabel(q){
+    // Prefer ref + headings master. Fall back to q.section, then blank.
+    const r = q?.ref;
+    if(r && Number.isInteger(r.chapter)){
+      const ch = r.chapter;
+      const chTitle = getChapterTitle(ch);
+      const chPart = `第${ch}章` + (chTitle ? ` ${chTitle}` : "");
 
-    const MARU = [null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
-
-    function safeText(s){ return String(s ?? ""); }
-
-    function getChapterTitle(ch){
-      return headings?.chapters?.[String(ch)]?.title || "";
-    }
-    function getSectionTitle(ch, sec){
-      return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
-    }
-
-    function formatRefLabel(q){
-      // Prefer ref + headings master. Fall back to q.section, then blank.
-      const r = q?.ref;
-      if(r && Number.isInteger(r.chapter)){
-        const ch = r.chapter;
-        const chTitle = getChapterTitle(ch);
-        const chPart = `第${ch}章` + (chTitle ? ` ${chTitle}` : "");
-
-        // 第8章は条番号（section）が存在しない（(1)(2)のみ）
-        if(ch === 8 || !Number.isInteger(r.section)){
-          let s = chPart;
-          if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
-          if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
-          return s.trim();
-        }
-
-        const sec = r.section;
-        const secTitle = getSectionTitle(ch, sec);
-        let s = `${chPart} / ${sec}.` + (secTitle ? ` ${secTitle}` : "");
+      // 第8章は条番号（section）が存在しない（(1)(2)のみ）
+      if(ch === 8 || !Number.isInteger(r.section)){
+        let s = chPart;
         if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
         if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
         return s.trim();
       }
-      return safeText(q?.section).trim();
+
+      const sec = r.section;
+      const secTitle = getSectionTitle(ch, sec);
+      let s = `${chPart} / ${sec}.` + (secTitle ? ` ${secTitle}` : "");
+      if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
+      if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
+      return s.trim();
+    }
+    return safeText(q?.section).trim();
+  }
+
+  async function init(){
+    // Load quiz
+    const res = await fetch(DATA_URL);
+    quiz = await res.json();
+
+    // Load headings master (optional)
+    try{
+      const r = await fetch("./ifsa_headings.json", { cache: "no-store" });
+      if(r.ok) headings = await r.json();
+    }catch(e){
+      headings = null;
     }
 
-    async function init(){
-      // Load quiz
-      const res = await fetch(DATA_URL);
-      quiz = await res.json();
+    setPageTitle();
+    render();
+  }
 
-      // Load headings master (optional)
-      try{
-        const r = await fetch("./ifsa_headings.json", { cache: "no-store" });
-        if(r.ok) headings = await r.json();
-      }catch(e){
-        headings = null;
-      }
-
-      render();
-    }
-
-    function render(){
-      const q = quiz.questions[idx];
-      app.innerHTML = "";
-      if(!q){
-        const rate = Math.round((correct/quiz.questions.length)*100);
-        app.appendChild(el(`
-          <div>
-            <h2>結果</h2>
-            <p>正解：<b>${correct}</b> / ${quiz.questions.length}（${rate}%）</p>
-            <div class="row">
-              <button class="smallbtn" onclick="restart()">もう一度</button>
-            </div>
-          </div>
-        `));
-        return;
-      }
-
-      const label = formatRefLabel(q);
-      const head = el(`
-        <div>
-          <div class="muted">${idx+1} / ${quiz.questions.length}　|　${label}</div>
-          <h2 style="margin:8px 0 10px">${safeText(q.question)}</h2>
-        </div>
-      `);
-      app.appendChild(head);
-
-      q.choices.forEach((c, i) => {
-        const b = document.createElement("button");
-        b.textContent = `${i+1}. ${c}`;
-        b.onclick = () => choose(i, b);
-        app.appendChild(b);
-      });
-
-      app.appendChild(el(`<div id="fb" class="card" style="display:none"></div>`));
+  function render(){
+    const q = quiz.questions[idx];
+    app.innerHTML = "";
+    if(!q){
+      const rate = Math.round((correct/quiz.questions.length)*100);
       app.appendChild(el(`
-        <div class="row">
-          <button class="smallbtn" id="next" style="display:none" onclick="next()">次へ</button>
+        <div>
+          <h2>結果</h2>
+          <p>正解：<b>${correct}</b> / ${quiz.questions.length}（${rate}%）</p>
+          <div class="row">
+            <button class="smallbtn" onclick="restart()">もう一度</button>
+          </div>
         </div>
       `));
+      return;
     }
 
-    function choose(i, btn){
-      if(answered) return;
-      answered = true;
+    const label = formatRefLabel(q);
+    const head = el(`
+      <div>
+        <div class="muted">${idx+1} / ${quiz.questions.length}　|　${label}</div>
+        <h2 style="margin:8px 0 10px">${safeText(q.question)}</h2>
+      </div>
+    `);
+    app.appendChild(head);
 
-      const q = quiz.questions[idx];
-      const fb = document.getElementById("fb");
-      const nextBtn = document.getElementById("next");
+    q.choices.forEach((c, i) => {
+      const b = document.createElement("button");
+      b.textContent = `${i+1}. ${c}`;
+      b.onclick = () => choose(i, b);
+      app.appendChild(b);
+    });
 
-      const ok = (i === q.answerIndex);
-      if(ok) correct++;
+    app.appendChild(el(`<div id="fb" class="card" style="display:none"></div>`));
+    app.appendChild(el(`
+      <div class="row">
+        <button class="smallbtn" id="next" style="display:none" onclick="next()">次へ</button>
+      </div>
+    `));
+  }
 
-      if(ok) btn.classList.add("ok"); else btn.classList.add("ng");
+  function choose(i, btn){
+    if(answered) return;
+    answered = true;
 
-      fb.style.display = "block";
-      fb.innerHTML = `
-        <h3 style="margin:0 0 6px">${ok ? "正解" : "不正解"}</h3>
-        <p class="muted" style="margin:0 0 8px">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
-        <p style="margin:0">${safeText(q.explanation)}</p>
-      `;
-      nextBtn.style.display = "inline-block";
-    }
+    const q = quiz.questions[idx];
+    const fb = document.getElementById("fb");
+    const nextBtn = document.getElementById("next");
 
-    function next(){ idx++; answered = false; render(); }
-    function restart(){ idx = 0; correct = 0; answered = false; render(); }
+    const ok = (i === q.answerIndex);
+    if(ok) correct++;
 
-    init();
-  </script>
+    if(ok) btn.classList.add("ok"); else btn.classList.add("ng");
+
+    fb.style.display = "block";
+    fb.innerHTML = `
+      <h3 style="margin:0 0 6px">${ok ? "正解" : "不正解"}</h3>
+      <p class="muted" style="margin:0 0 8px">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
+      <p style="margin:0">${safeText(q.explanation)}</p>
+    `;
+    nextBtn.style.display = "inline-block";
+  }
+
+  function next(){ idx++; answered = false; render(); }
+  function restart(){ idx = 0; correct = 0; answered = false; render(); }
+
+  init();
+</script>
 </body>
 </html>
