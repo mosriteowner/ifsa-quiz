@@ -43,16 +43,28 @@
   }
 
   function setPageTitle(){
+    // 1) data=quiz_chX.json + ifsa_headings.json
     const ch = chapterFromDataUrl();
     if(ch && headings?.chapters?.[String(ch)]){
       const t = headings.chapters[String(ch)].title || "";
       const label = t ? `第${ch}章 ${t}` : `第${ch}章`;
       document.title = `#自主基準クイズ（${label}）`;
       if(titleEl) titleEl.textContent = `#自主基準クイズ（${label}）`;
-    }else{
-      document.title = "#自主基準クイズ";
-      if(titleEl) titleEl.textContent = "#自主基準クイズ";
+      return;
     }
+
+    // 2) fallback: quiz.title をそのまま使う（存在すれば）
+    const qt = (quiz && typeof quiz.title === "string") ? quiz.title.trim() : "";
+    if(qt){
+      document.title = `#自主基準クイズ（${qt}）`;
+      if(titleEl) titleEl.textContent = `#自主基準クイズ（${qt}）`;
+      return;
+    }
+
+    // 3) default
+    document.title = "#自主基準クイズ";
+    if(titleEl) titleEl.textContent = "#自主基準クイズ";
+  }
   }
 
   function getChapterTitle(ch){
