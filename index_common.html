@@ -23,6 +23,7 @@
   <div id="app" class="card"></div>
 
   <script>
+  // URL例: index_common.html?data=quiz_ch1.json
   const params = new URLSearchParams(location.search);
   const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
 
@@ -34,23 +35,6 @@
   const titleEl = document.getElementById("title");
 
   function safeText(s){ return String(s ?? ""); }
-
-  function showError(where, err){
-    if(!app) return;
-    const msg = (err && (err.stack || err.message)) ? (err.stack || err.message) : safeText(err);
-    app.innerHTML = `
-      <div>
-        <h2>読み込みエラー</h2>
-        <p class="muted" style="margin:0 0 8px">where=${safeText(where)}</p>
-        <p class="muted" style="margin:0 0 8px">data=${safeText(DATA_URL)}</p>
-        <pre style="white-space:pre-wrap;margin:0">${safeText(msg)}</pre>
-      </div>
-    `;
-  }
-
-  // Catch unexpected errors too
-  window.addEventListener("error", (e)=> showError("window.error", e.error || e.message));
-  window.addEventListener("unhandledrejection", (e)=> showError("unhandledrejection", e.reason));
 
   function chapterFromDataUrl(){
     const m = DATA_URL.match(/quiz_ch(\d+)\.json/);
@@ -90,6 +74,7 @@
       const chTitle = getChapterTitle(ch);
       const chPart = `第${ch}章` + (chTitle ? ` ${chTitle}` : "");
 
+      // 第8章は条番号（section）が存在しない（(1)(2)のみ）
       if(ch === 8 || !Number.isInteger(r.section)){
         let s = chPart;
         if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
@@ -177,10 +162,7 @@
 
   async function init(){
     try{
-      if(app) app.innerHTML = `<div class="muted">読み込み中…</div>`;
-
       const res = await fetch(DATA_URL, { cache: "no-store" });
-      if(!res.ok) throw new Error(`quiz fetch failed: ${res.status} ${res.statusText}`);
       quiz = await res.json();
 
       try{
@@ -193,7 +175,10 @@
       setPageTitle();
       render();
     }catch(e){
-      showError("init", e);
+      // fail silently: keep base title; no UI noise
+      document.title = "#自主基準クイズ";
+      if(titleEl) titleEl.textContent = "#自主基準クイズ";
+      console.error(e);
     }
   }
 
