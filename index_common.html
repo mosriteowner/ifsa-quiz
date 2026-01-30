@@ -24,7 +24,7 @@
 
   <script>
     // URL例:
-    // index_common.html?data=quiz_ch1_1.json&title=第1章-1
+    // index_common.html?data=quiz_ch1.json&title=第1章
     const params = new URLSearchParams(location.search);
     const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
     const pageTitle = params.get("title");
@@ -34,14 +34,61 @@
       document.getElementById("title").textContent = `#自主基準クイズ（${pageTitle}）`;
     }
 
-    let quiz, idx = 0, correct = 0, answered = false;
+    let quiz, headings = null, idx = 0, correct = 0, answered = false;
 
     const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
     const app = document.getElementById("app");
 
+    const MARU = [null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+
+    function safeText(s){ return String(s ?? ""); }
+
+    function getChapterTitle(ch){
+      return headings?.chapters?.[String(ch)]?.title || "";
+    }
+    function getSectionTitle(ch, sec){
+      return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
+    }
+
+    function formatRefLabel(q){
+      // Prefer ref + headings master. Fall back to q.section, then blank.
+      const r = q?.ref;
+      if(r && Number.isInteger(r.chapter)){
+        const ch = r.chapter;
+        const chTitle = getChapterTitle(ch);
+        const chPart = `第${ch}章` + (chTitle ? ` ${chTitle}` : "");
+
+        // 第8章は条番号（section）が存在しない（(1)(2)のみ）
+        if(ch === 8 || !Number.isInteger(r.section)){
+          let s = chPart;
+          if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
+          if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
+          return s.trim();
+        }
+
+        const sec = r.section;
+        const secTitle = getSectionTitle(ch, sec);
+        let s = `${chPart} / ${sec}.` + (secTitle ? ` ${secTitle}` : "");
+        if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
+        if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
+        return s.trim();
+      }
+      return safeText(q?.section).trim();
+    }
+
     async function init(){
+      // Load quiz
       const res = await fetch(DATA_URL);
       quiz = await res.json();
+
+      // Load headings master (optional)
+      try{
+        const r = await fetch("./ifsa_headings.json", { cache: "no-store" });
+        if(r.ok) headings = await r.json();
+      }catch(e){
+        headings = null;
+      }
+
       render();
     }
 
@@ -62,10 +109,11 @@
         return;
       }
 
+      const label = formatRefLabel(q);
       const head = el(`
         <div>
-          <div class="muted">${idx+1} / ${quiz.questions.length}　|　${q.section}</div>
-          <h2 style="margin:8px 0 10px">${q.question}</h2>
+          <div class="muted">${idx+1} / ${quiz.questions.length}　|　${label}</div>
+          <h2 style="margin:8px 0 10px">${safeText(q.question)}</h2>
         </div>
       `);
       app.appendChild(head);
@@ -102,7 +150,7 @@
       fb.innerHTML = `
         <h3 style="margin:0 0 6px">${ok ? "正解" : "不正解"}</h3>
         <p class="muted" style="margin:0 0 8px">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
-        <p style="margin:0">${q.explanation}</p>
+        <p style="margin:0">${safeText(q.explanation)}</p>
       `;
       nextBtn.style.display = "inline-block";
     }

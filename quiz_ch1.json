@@ -11,7 +11,13 @@
         "葬儀社が必要と判断した"
       ],
       "answerIndex": 1,
-      "explanation": "故人の意思として認められるのは、生前に文書等で明確に依頼する旨が示されている場合に限られる。"
+      "explanation": "故人の意思として認められるのは、生前に文書等で明確に依頼する旨が示されている場合に限られる。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 1.",
@@ -23,7 +29,13 @@
         "多数決で処置の可否を決めることができる"
       ],
       "answerIndex": 1,
-      "explanation": "遺族による依頼は、原則として依頼書への自筆署名が必要である。"
+      "explanation": "遺族による依頼は、原則として依頼書への自筆署名が必要である。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 1.",
@@ -35,7 +47,13 @@
         "親族全員の意思が確認できていない"
       ],
       "answerIndex": 2,
-      "explanation": "二親等以内の親族から明示の反対があった場合には、処置を行ってはならない。"
+      "explanation": "二親等以内の親族から明示の反対があった場合には、処置を行ってはならない。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 1.",
@@ -47,7 +65,13 @@
         "施主の判断で処置できる"
       ],
       "answerIndex": 1,
-      "explanation": "故人の意思が文書で確認できても、遺族に関する条件を満たさなければ処置はできない。"
+      "explanation": "故人の意思が文書で確認できても、遺族に関する条件を満たさなければ処置はできない。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 1.",
@@ -59,7 +83,13 @@
         "処置は行ってはならない"
       ],
       "answerIndex": 1,
-      "explanation": "配偶者および二親等以内の親族がいない場合には、施主が依頼書に自筆で署名することで処置が可能となる。"
+      "explanation": "配偶者および二親等以内の親族がいない場合には、施主が依頼書に自筆で署名することで処置が可能となる。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 1.",
@@ -71,7 +101,13 @@
         "処置は行ってはならない"
       ],
       "answerIndex": 1,
-      "explanation": "親族が自由な意思表示を行えない場合には、施主による自筆署名で処置が可能とされている。"
+      "explanation": "親族が自由な意思表示を行えない場合には、施主による自筆署名で処置が可能とされている。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 1.",
@@ -83,7 +119,13 @@
         "葬儀社の判断で処置できる"
       ],
       "answerIndex": 1,
-      "explanation": "災害・事故・犯罪等の場合には、行政や警察など公的機関の判断に従う。"
+      "explanation": "災害・事故・犯罪等の場合には、行政や警察など公的機関の判断に従う。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 1.",
@@ -95,7 +137,13 @@
         "葬儀社の判断"
       ],
       "answerIndex": 2,
-      "explanation": "公的機関からの依頼であっても、担当者の署名等による依頼が必要とされている。"
+      "explanation": "公的機関からの依頼であっても、担当者の署名等による依頼が必要とされている。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 1.",
@@ -107,7 +155,13 @@
         "葬儀社の判断に委ねられる"
       ],
       "answerIndex": 2,
-      "explanation": "行政・司法から行わないよう要請・助言があった場合には、処置してはならない。"
+      "explanation": "行政・司法から行わないよう要請・助言があった場合には、処置してはならない。",
+      "ref": {
+        "chapter": 1,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 2.",
@@ -119,7 +173,13 @@
         "慣例として行うため"
       ],
       "answerIndex": 1,
-      "explanation": "遺体衛生保全は、条文で列挙された目的に該当する場合にのみ行われる。"
+      "explanation": "遺体衛生保全は、条文で列挙された目的に該当する場合にのみ行われる。",
+      "ref": {
+        "chapter": 1,
+        "section": 2,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 2.",
@@ -131,7 +191,13 @@
         "葬儀社が目的を追加できる"
       ],
       "answerIndex": 2,
-      "explanation": "目的①〜⑥のいずれにも該当しない処置は行ってはならない。"
+      "explanation": "目的①〜⑥のいずれにも該当しない処置は行ってはならない。",
+      "ref": {
+        "chapter": 1,
+        "section": 2,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 2.",
@@ -143,7 +209,13 @@
         "業務効率"
       ],
       "answerIndex": 2,
-      "explanation": "公衆衛生上の必要性に基づく行政機関等からの要請は、正当な処置目的に含まれる。"
+      "explanation": "公衆衛生上の必要性に基づく行政機関等からの要請は、正当な処置目的に含まれる。",
+      "ref": {
+        "chapter": 1,
+        "section": 2,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 3.",
@@ -155,7 +227,13 @@
         "処置後写真"
       ],
       "answerIndex": 1,
-      "explanation": "原則として、公的な死亡を証明する書類が必要とされている。"
+      "explanation": "原則として、公的な死亡を証明する書類が必要とされている。",
+      "ref": {
+        "chapter": 1,
+        "section": 3,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 3.",
@@ -167,7 +245,13 @@
         "遺族全員の同意書"
       ],
       "answerIndex": 1,
-      "explanation": "条文では、生前のお顔がわかる複数の写真が必要書類等として列挙されている。"
+      "explanation": "条文では、生前のお顔がわかる複数の写真が必要書類等として列挙されている。",
+      "ref": {
+        "chapter": 1,
+        "section": 3,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 3.",
@@ -179,7 +263,13 @@
         "葬儀社の判断による場合"
       ],
       "answerIndex": 2,
-      "explanation": "災害・事故等に関する目的は、書類等を要しない例外に含まれている。"
+      "explanation": "災害・事故等に関する目的は、書類等を要しない例外に含まれている。",
+      "ref": {
+        "chapter": 1,
+        "section": 3,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 4.",
@@ -191,7 +281,13 @@
         "遺族の求めがあった場合のみ作成する"
       ],
       "answerIndex": 2,
-      "explanation": "処置に関する記録は、エンバーマー又は業務管理者が作成しなければならない。"
+      "explanation": "処置に関する記録は、エンバーマー又は業務管理者が作成しなければならない。",
+      "ref": {
+        "chapter": 1,
+        "section": 4,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 4.",
@@ -203,7 +299,13 @@
         "永久保存"
       ],
       "answerIndex": 2,
-      "explanation": "記録は、個人情報の管理規定に則り、5年間保存することが求められている。"
+      "explanation": "記録は、個人情報の管理規定に則り、5年間保存することが求められている。",
+      "ref": {
+        "chapter": 1,
+        "section": 4,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第1章 4.",
@@ -215,7 +317,20 @@
         "葬儀社の担当者"
       ],
       "answerIndex": 2,
-      "explanation": "記録の保存管理は、実施事業者の業務管理者が行う。"
+      "explanation": "記録の保存管理は、実施事業者の業務管理者が行う。",
+      "ref": {
+        "chapter": 1,
+        "section": 4,
+        "subsection": null,
+        "item": null
+      }
     }
-  ]
+  ],
+  "chapterNo": 1,
+  "sectionTitles": {
+    "1": "処置実施の条件",
+    "2": "処置の目的",
+    "3": "処置に必要な書類等",
+    "4": "処置の記録と保存"
+  }
 }

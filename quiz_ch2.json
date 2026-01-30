@@ -10,7 +10,13 @@
         "化粧・着付け"
       ],
       "answerIndex": 0,
-      "explanation": "条文①には「最初に身体の洗浄、消毒を行い」と明記されている。"
+      "explanation": "第２章１．①には「最初に身体の洗浄、消毒を行い」と明記されている。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 1
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -22,7 +28,13 @@
         "体腔内に直接注入するのみで血管は用いない"
       ],
       "answerIndex": 0,
-      "explanation": "条文①は「薬剤を血管経由で全身に注入して組織を固定」と定めている。"
+      "explanation": "第２章１．①では「薬剤を血管経由で全身に注入して組織を固定」と定めている。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 1
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -34,7 +46,13 @@
         "手背の毛細血管"
       ],
       "answerIndex": 0,
-      "explanation": "条文②に「血管の剖出は、主として頚部又は大腿部の動脈で行い」とある。"
+      "explanation": "第２章１．②に「血管の剖出は、主として頚部又は大腿部の動脈で行い」とある。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 2
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -46,7 +64,13 @@
         "体液を自然排出させるため"
       ],
       "answerIndex": 0,
-      "explanation": "条文②では「内臓の臓器の防腐処置のための注入針を体腔に挿入するために行う」とされている。"
+      "explanation": "第２章１．②では「内臓の臓器の防腐処置のための注入針を体腔に挿入するために行う」とされている。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 2
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -58,7 +82,13 @@
         "修復は行わない"
       ],
       "answerIndex": 0,
-      "explanation": "条文②の末尾に「切開部位は処置後に縫合し修復する」と明記されている。"
+      "explanation": "第２章１．②の末尾に「切開部位は処置後に縫合し修復する」と明記されている。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 2
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -70,7 +100,13 @@
         "修復処置を行う場合に限って行われる"
       ],
       "answerIndex": 2,
-      "explanation": "条文③には「ご遺族の希望がある場合には、それに従い、化粧、着付けを行う」とある。"
+      "explanation": "第２章１．③には「ご遺族の希望がある場合には、それに従い、化粧、着付けを行う」とある。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 3
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -82,7 +118,13 @@
         "医師の指示がある場合に限り行う"
       ],
       "answerIndex": 2,
-      "explanation": "条文④では「ご遺族の希望に従い修復等の処置を行う」と定めている。"
+      "explanation": "第２章１．④では「ご遺族の希望に従い修復等の処置を行う」と定めている。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 4
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -94,7 +136,13 @@
         "修復は必ず処置前の状態まで回復させる"
       ],
       "answerIndex": 1,
-      "explanation": "条文⑤には「修復には技術的に限度があり、良好な修復が困難なケースがある」と記載されている。"
+      "explanation": "第２章１．⑤には「修復には技術的に限度があり、良好な修復が困難なケースがある」と記載されている。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -106,7 +154,13 @@
         "腐敗の進行度にかかわらず同等の効果がある"
       ],
       "answerIndex": 2,
-      "explanation": "条文⑤では「腐敗防止は処置後に対して有効であり」と明示されている。"
+      "explanation": "第２章１．⑤では「腐敗防止は処置後に対して有効であり」と明示されている。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 5
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -118,7 +172,13 @@
         "腐敗前の状態に復すことはできない"
       ],
       "answerIndex": 3,
-      "explanation": "条文⑤には「処置前に腐敗したものを腐敗前の状態に復すことはできない」と明記されている。"
+      "explanation": "第２章１．⑤には「処置前に腐敗したものを腐敗前の状態に復すことはできない」と明記されている。",
+      "ref": {
+        "chapter": 2,
+        "section": 1,
+        "subsection": null,
+        "item": 5
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -130,7 +190,13 @@
         "依頼者から求めがあった場合のみ告知する"
       ],
       "answerIndex": 2,
-      "explanation": "条文2には「事前に文書で依頼者に告知する必要がある」とある。"
+      "explanation": "第２章２．には「事前に文書で依頼者に告知する必要がある」とある。",
+      "ref": {
+        "chapter": 2,
+        "section": 2,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -142,7 +208,13 @@
         "処置内容および処置の限界"
       ],
       "answerIndex": 3,
-      "explanation": "条文2は「前項の処置内容、処置の限界については」と両方を告知対象としている。"
+      "explanation": "第２章２．では「前項の処置内容、処置の限界については」と両方を告知対象としている。",
+      "ref": {
+        "chapter": 2,
+        "section": 2,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -154,7 +226,13 @@
         "技術教育専門委員会の構成"
       ],
       "answerIndex": 2,
-      "explanation": "条文2には「特に小切開を行うこと」が重要情報として明示されている。"
+      "explanation": "第２章２．では「特に小切開を行うこと」が重要情報として明示されている。",
+      "ref": {
+        "chapter": 2,
+        "section": 2,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -166,7 +244,13 @@
         "重要情報の説明は任意である"
       ],
       "answerIndex": 2,
-      "explanation": "条文2は「事前に明示し、説明をしなければならない」と定めている。"
+      "explanation": "第２章２．では「事前に明示し、説明をしなければならない」と定めている。",
+      "ref": {
+        "chapter": 2,
+        "section": 2,
+        "subsection": null,
+        "item": null
+      }
     },
     {
       "section": "第２章　処置の内容",
@@ -178,7 +262,20 @@
         "法令で詳細に規定されている"
       ],
       "answerIndex": 2,
-      "explanation": "条文3には「処置の技法その他細部については、技術教育専門委員会が別に定めるものとする」とある。"
+      "explanation": "第２章３．には「処置の技法その他細部については、技術教育専門委員会が別に定めるものとする」とある。",
+      "ref": {
+        "chapter": 2,
+        "section": 3,
+        "subsection": null,
+        "item": null
+      }
     }
-  ]
+  ],
+  "title": "第2章　処置の内容",
+  "chapterNo": 2,
+  "sectionTitles": {
+    "1": "処置の内容",
+    "2": "告知義務",
+    "3": "技法その他"
+  }
 }
