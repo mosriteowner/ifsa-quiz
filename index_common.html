@@ -23,7 +23,6 @@
   <div id="app" class="card"></div>
 
   <script>
-  // URL例: index_common.html?data=quiz_ch1.json
   const params = new URLSearchParams(location.search);
   const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
 
@@ -31,7 +30,27 @@
 
   const MARU = [null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
 
+  const app = document.getElementById("app");
+  const titleEl = document.getElementById("title");
+
   function safeText(s){ return String(s ?? ""); }
+
+  function showError(where, err){
+    if(!app) return;
+    const msg = (err && (err.stack || err.message)) ? (err.stack || err.message) : safeText(err);
+    app.innerHTML = `
+      <div>
+        <h2>読み込みエラー</h2>
+        <p class="muted" style="margin:0 0 8px">where=${safeText(where)}</p>
+        <p class="muted" style="margin:0 0 8px">data=${safeText(DATA_URL)}</p>
+        <pre style="white-space:pre-wrap;margin:0">${safeText(msg)}</pre>
+      </div>
+    `;
+  }
+
+  // Catch unexpected errors too
+  window.addEventListener("error", (e)=> showError("window.error", e.error || e.message));
+  window.addEventListener("unhandledrejection", (e)=> showError("unhandledrejection", e.reason));
 
   function chapterFromDataUrl(){
     const m = DATA_URL.match(/quiz_ch(\d+)\.json/);
@@ -45,7 +64,7 @@
     return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
   }
 
-  function setPageTitle(titleEl){
+  function setPageTitle(){
     const ch = chapterFromDataUrl();
     if(ch && headings?.chapters?.[String(ch)]){
       const t = headings.chapters[String(ch)].title || "";
@@ -54,14 +73,12 @@
       if(titleEl) titleEl.textContent = `#自主基準クイズ（${label}）`;
       return;
     }
-
     const qt = (quiz && typeof quiz.title === "string") ? quiz.title.trim() : "";
     if(qt){
       document.title = `#自主基準クイズ（${qt}）`;
       if(titleEl) titleEl.textContent = `#自主基準クイズ（${qt}）`;
       return;
     }
-
     document.title = "#自主基準クイズ";
     if(titleEl) titleEl.textContent = "#自主基準クイズ";
   }
@@ -90,19 +107,15 @@
     return safeText(q?.section).trim();
   }
 
-  function el(html){
-    const d = document.createElement("div");
-    d.innerHTML = html.trim();
-    return d.firstChild;
-  }
+  function render(){
+    if(!app) return;
 
-  function render(app){
     const q = quiz.questions[idx];
     app.innerHTML = "";
 
     if(!q){
       const rate = Math.round((correct/quiz.questions.length)*100);
-      app.appendChild(el(`
+      app.innerHTML = `
         <div>
           <h2>結果</h2>
           <p>正解：<b>${correct}</b> / ${quiz.questions.length}（${rate}%）</p>
@@ -110,17 +123,17 @@
             <button class="smallbtn" onclick="restart()">もう一度</button>
           </div>
         </div>
-      `));
+      `;
       return;
     }
 
     const label = formatRefLabel(q);
-    app.appendChild(el(`
+    app.insertAdjacentHTML("beforeend", `
       <div>
         <div class="muted">${idx+1} / ${quiz.questions.length}　|　${label}</div>
         <h2 style="margin:8px 0 10px">${safeText(q.question)}</h2>
       </div>
-    `));
+    `);
 
     q.choices.forEach((c, i) => {
       const b = document.createElement("button");
@@ -129,12 +142,12 @@
       app.appendChild(b);
     });
 
-    app.appendChild(el(`<div id="fb" class="card" style="display:none"></div>`));
-    app.appendChild(el(`
+    app.insertAdjacentHTML("beforeend", `<div id="fb" class="card" style="display:none"></div>`);
+    app.insertAdjacentHTML("beforeend", `
       <div class="row">
         <button class="smallbtn" id="next" style="display:none" onclick="next()">次へ</button>
       </div>
-    `));
+    `);
   }
 
   function choose(i, btn){
@@ -159,49 +172,28 @@
     nextBtn.style.display = "inline-block";
   }
 
-  function next(){
-    idx++; answered = false;
-    const app = document.getElementById("app");
-    if(app) render(app);
-  }
-
-  function restart(){
-    idx = 0; correct = 0; answered = false;
-    const app = document.getElementById("app");
-    if(app) render(app);
-  }
+  window.next = function(){ idx++; answered = false; render(); }
+  window.restart = function(){ idx = 0; correct = 0; answered = false; render(); }
 
   async function init(){
-    const app = document.getElementById("app");
-    const titleEl = document.getElementById("title");
-
     try{
+      if(app) app.innerHTML = `<div class="muted">読み込み中…</div>`;
+
       const res = await fetch(DATA_URL, { cache: "no-store" });
-      if(!res.ok) throw new Error(`quiz fetch failed: ${res.status}`);
+      if(!res.ok) throw new Error(`quiz fetch failed: ${res.status} ${res.statusText}`);
       quiz = await res.json();
 
       try{
         const r = await fetch("./ifsa_headings.json", { cache: "no-store" });
         if(r.ok) headings = await r.json();
-      }catch(e){
+      }catch(_e){
         headings = null;
       }
 
-      setPageTitle(titleEl);
-      render(app);
+      setPageTitle();
+      render();
     }catch(e){
-      if(titleEl) titleEl.textContent = "#自主基準クイズ";
-      if(app){
-        app.innerHTML = "";
-        app.appendChild(el(`
-          <div>
-            <h2>読み込みエラー</h2>
-            <p class="muted" style="margin:0 0 8px">data=${safeText(DATA_URL)}</p>
-            <pre style="white-space:pre-wrap;margin:0">${safeText(e && (e.message || e))}</pre>
-          </div>
-        `));
-      }
-      console.error(e);
+      showError("init", e);
     }
   }
 
