@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>自主基準クイズ（前文）</title>
+  <title>#自主基準クイズ（前文）</title>
   <style>
     body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:820px;margin:24px auto;padding:0 16px;line-height:1.6}
     .card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:12px 0}
@@ -14,10 +14,19 @@
     .smallbtn{width:auto}
     .ok{border-color:#2f855a}
     .ng{border-color:#c53030}
+  
+    /* モバイルで選択肢文字を大きくする */
+    @media (max-width: 480px) {
+      button {
+        font-size: 17px;
+        line-height: 1.4;
+        padding: 12px 10px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>自主基準クイズ（前文）</h1>
+  <h1 id="title">#自主基準クイズ（前文）</h1>
   <p class="muted">学習用クイズ。全8問、1問ずつ進みます。</p>
 
   <div id="app" class="card"></div>
@@ -28,10 +37,22 @@
 
     const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
     const app = document.getElementById("app");
+    const titleEl = document.getElementById("title");
 
     async function init(){
-      const res = await fetch(DATA_URL);
+      const res = await fetch(DATA_URL, { cache: "no-store" });
       quiz = await res.json();
+
+      // タイトルはJSONのtitleを優先（無ければ前文）
+      const qt = (quiz && typeof quiz.title === "string") ? quiz.title.trim() : "";
+      if(qt){
+        document.title = `#自主基準クイズ（${qt}）`;
+        if(titleEl) titleEl.textContent = `#自主基準クイズ（${qt}）`;
+      }else{
+        document.title = "#自主基準クイズ（前文）";
+        if(titleEl) titleEl.textContent = "#自主基準クイズ（前文）";
+      }
+
       render();
     }
 
@@ -86,7 +107,6 @@
       const ok = (i === q.answerIndex);
       if(ok) correct++;
 
-      // マーク
       if(ok) btn.classList.add("ok"); else btn.classList.add("ng");
 
       fb.style.display = "block";
