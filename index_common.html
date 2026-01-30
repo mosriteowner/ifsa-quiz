@@ -27,11 +27,7 @@
   const params = new URLSearchParams(location.search);
   const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
 
-  let quiz, headings = null, idx = 0, correct = 0, answered = false;
-
-  const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
-  const app = document.getElementById("app");
-  const titleEl = document.getElementById("title");
+  let quiz = null, headings = null, idx = 0, correct = 0, answered = false;
 
   const MARU = [null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
 
@@ -42,8 +38,14 @@
     return m ? parseInt(m[1], 10) : null;
   }
 
-  function setPageTitle(){
-    // 1) data=quiz_chX.json + ifsa_headings.json
+  function getChapterTitle(ch){
+    return headings?.chapters?.[String(ch)]?.title || "";
+  }
+  function getSectionTitle(ch, sec){
+    return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
+  }
+
+  function setPageTitle(titleEl){
     const ch = chapterFromDataUrl();
     if(ch && headings?.chapters?.[String(ch)]){
       const t = headings.chapters[String(ch)].title || "";
@@ -53,7 +55,6 @@
       return;
     }
 
-    // 2) fallback: quiz.title をそのまま使う（存在すれば）
     const qt = (quiz && typeof quiz.title === "string") ? quiz.title.trim() : "";
     if(qt){
       document.title = `#自主基準クイズ（${qt}）`;
@@ -61,28 +62,17 @@
       return;
     }
 
-    // 3) default
     document.title = "#自主基準クイズ";
     if(titleEl) titleEl.textContent = "#自主基準クイズ";
   }
-  }
-
-  function getChapterTitle(ch){
-    return headings?.chapters?.[String(ch)]?.title || "";
-  }
-  function getSectionTitle(ch, sec){
-    return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
-  }
 
   function formatRefLabel(q){
-    // Prefer ref + headings master. Fall back to q.section, then blank.
     const r = q?.ref;
     if(r && Number.isInteger(r.chapter)){
       const ch = r.chapter;
       const chTitle = getChapterTitle(ch);
       const chPart = `第${ch}章` + (chTitle ? ` ${chTitle}` : "");
 
-      // 第8章は条番号（section）が存在しない（(1)(2)のみ）
       if(ch === 8 || !Number.isInteger(r.section)){
         let s = chPart;
         if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
@@ -100,26 +90,16 @@
     return safeText(q?.section).trim();
   }
 
-  async function init(){
-    // Load quiz
-    const res = await fetch(DATA_URL);
-    quiz = await res.json();
-
-    // Load headings master (optional)
-    try{
-      const r = await fetch("./ifsa_headings.json", { cache: "no-store" });
-      if(r.ok) headings = await r.json();
-    }catch(e){
-      headings = null;
-    }
-
-    setPageTitle();
-    render();
+  function el(html){
+    const d = document.createElement("div");
+    d.innerHTML = html.trim();
+    return d.firstChild;
   }
 
-  function render(){
+  function render(app){
     const q = quiz.questions[idx];
     app.innerHTML = "";
+
     if(!q){
       const rate = Math.round((correct/quiz.questions.length)*100);
       app.appendChild(el(`
@@ -135,13 +115,12 @@
     }
 
     const label = formatRefLabel(q);
-    const head = el(`
+    app.appendChild(el(`
       <div>
         <div class="muted">${idx+1} / ${quiz.questions.length}　|　${label}</div>
         <h2 style="margin:8px 0 10px">${safeText(q.question)}</h2>
       </div>
-    `);
-    app.appendChild(head);
+    `));
 
     q.choices.forEach((c, i) => {
       const b = document.createElement("button");
@@ -180,8 +159,51 @@
     nextBtn.style.display = "inline-block";
   }
 
-  function next(){ idx++; answered = false; render(); }
-  function restart(){ idx = 0; correct = 0; answered = false; render(); }
+  function next(){
+    idx++; answered = false;
+    const app = document.getElementById("app");
+    if(app) render(app);
+  }
+
+  function restart(){
+    idx = 0; correct = 0; answered = false;
+    const app = document.getElementById("app");
+    if(app) render(app);
+  }
+
+  async function init(){
+    const app = document.getElementById("app");
+    const titleEl = document.getElementById("title");
+
+    try{
+      const res = await fetch(DATA_URL, { cache: "no-store" });
+      if(!res.ok) throw new Error(`quiz fetch failed: ${res.status}`);
+      quiz = await res.json();
+
+      try{
+        const r = await fetch("./ifsa_headings.json", { cache: "no-store" });
+        if(r.ok) headings = await r.json();
+      }catch(e){
+        headings = null;
+      }
+
+      setPageTitle(titleEl);
+      render(app);
+    }catch(e){
+      if(titleEl) titleEl.textContent = "#自主基準クイズ";
+      if(app){
+        app.innerHTML = "";
+        app.appendChild(el(`
+          <div>
+            <h2>読み込みエラー</h2>
+            <p class="muted" style="margin:0 0 8px">data=${safeText(DATA_URL)}</p>
+            <pre style="white-space:pre-wrap;margin:0">${safeText(e && (e.message || e))}</pre>
+          </div>
+        `));
+      }
+      console.error(e);
+    }
+  }
 
   init();
 </script>
