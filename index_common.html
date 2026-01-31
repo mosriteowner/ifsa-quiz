@@ -5,27 +5,51 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>#自主基準クイズ</title>
   <style>
-    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:820px;margin:24px auto;padding:0 16px;line-height:1.6}
+    body{
+      font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+      max-width:820px;
+      margin:24px auto;
+      padding:0 16px;
+      line-height:1.6
+    }
     .card{border:1px solid #ddd;border-radius:12px;padding:16px 18px;margin:12px 0}
     .muted{color:#666;font-size:0.92em}
-    button{padding:10px 12px;border-radius:10px;border:1px solid #ccc;background:#fff;cursor:pointer;text-align:left;width:100%;margin:6px 0}
+    button{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #ccc;
+      background:#fff;
+      cursor:pointer;
+      text-align:left;
+      width:100%;
+      margin:6px 0
+    }
     button:hover{background:#f6f6f6}
     .row{display:flex;gap:8px;flex-wrap:wrap}
     .smallbtn{width:auto}
     .ok{border-color:#2f855a}
     .ng{border-color:#c53030}
-  
-/* モバイルで選択肢文字を大きくする */
-@media (max-width: 480px) {
-  button {
-    font-size: 17px;
-    line-height: 1.4;
-    padding: 12px 10px;
-  }
-}
-</style>
 
+    /* スマホ向け */
+    @media (max-width: 480px) {
+      button {
+        font-size: 17px;
+        line-height: 1.4;
+        padding: 12px 10px;
+      }
+    }
+
+    /* iPad / タブレット向け */
+    @media (pointer: coarse) and (min-width: 768px) {
+      button {
+        font-size: 18px;
+        line-height: 1.6;
+        padding: 14px 12px;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <h1 id="title">#自主基準クイズ</h1>
   <p class="muted" id="subtitle">学習用クイズ。1問ずつ進みます。</p>
@@ -33,166 +57,102 @@
   <div id="app" class="card"></div>
 
   <script>
-  // URL例: index_common.html?data=quiz_ch1.json
-  const params = new URLSearchParams(location.search);
-  const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
+    const params = new URLSearchParams(location.search);
+    const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
 
-  let quiz = null, headings = null, idx = 0, correct = 0, answered = false;
+    let quiz = null, headings = null, idx = 0, correct = 0, answered = false;
+    const MARU = [null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
 
-  const MARU = [null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+    const app = document.getElementById("app");
+    const titleEl = document.getElementById("title");
 
-  const app = document.getElementById("app");
-  const titleEl = document.getElementById("title");
+    function safeText(s){ return String(s ?? ""); }
 
-  function safeText(s){ return String(s ?? ""); }
-
-  function chapterFromDataUrl(){
-    const m = DATA_URL.match(/quiz_ch(\d+)\.json/);
-    return m ? parseInt(m[1], 10) : null;
-  }
-
-  function getChapterTitle(ch){
-    return headings?.chapters?.[String(ch)]?.title || "";
-  }
-  function getSectionTitle(ch, sec){
-    return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
-  }
-
-  function setPageTitle(){
-    const ch = chapterFromDataUrl();
-    if(ch && headings?.chapters?.[String(ch)]){
-      const t = headings.chapters[String(ch)].title || "";
-      const label = t ? `第${ch}章 ${t}` : `第${ch}章`;
-      document.title = `#自主基準クイズ（${label}）`;
-      if(titleEl) titleEl.textContent = `#自主基準クイズ（${label}）`;
-      return;
+    function chapterFromDataUrl(){
+      const m = DATA_URL.match(/quiz_ch(\d+)\.json/);
+      return m ? parseInt(m[1], 10) : null;
     }
-    const qt = (quiz && typeof quiz.title === "string") ? quiz.title.trim() : "";
-    if(qt){
-      document.title = `#自主基準クイズ（${qt}）`;
-      if(titleEl) titleEl.textContent = `#自主基準クイズ（${qt}）`;
-      return;
+
+    function getChapterTitle(ch){
+      return headings?.chapters?.[String(ch)]?.title || "";
     }
-    document.title = "#自主基準クイズ";
-    if(titleEl) titleEl.textContent = "#自主基準クイズ";
-  }
+    function getSectionTitle(ch, sec){
+      return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
+    }
 
-  function formatRefLabel(q){
-    const r = q?.ref;
-    if(r && Number.isInteger(r.chapter)){
-      const ch = r.chapter;
-      const chTitle = getChapterTitle(ch);
-      const chPart = `第${ch}章` + (chTitle ? ` ${chTitle}` : "");
-
-      // 第8章は条番号（section）が存在しない（(1)(2)のみ）
-      if(ch === 8 || !Number.isInteger(r.section)){
-        let s = chPart;
-        if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
-        if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
-        return s.trim();
+    function setPageTitle(){
+      const ch = chapterFromDataUrl();
+      if(ch && headings?.chapters?.[String(ch)]){
+        const t = headings.chapters[String(ch)].title || "";
+        const label = t ? `第${ch}章 ${t}` : `第${ch}章`;
+        document.title = `#自主基準クイズ（${label}）`;
+        titleEl.textContent = `#自主基準クイズ（${label}）`;
+        return;
       }
-
-      const sec = r.section;
-      const secTitle = getSectionTitle(ch, sec);
-      let s = `${chPart} / ${sec}.` + (secTitle ? ` ${secTitle}` : "");
-      if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
-      if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
-      return s.trim();
+      document.title = "#自主基準クイズ";
+      titleEl.textContent = "#自主基準クイズ";
     }
-    return safeText(q?.section).trim();
-  }
 
-  function render(){
-    if(!app) return;
+    function render(){
+      const q = quiz.questions[idx];
+      app.innerHTML = "";
 
-    const q = quiz.questions[idx];
-    app.innerHTML = "";
-
-    if(!q){
-      const rate = Math.round((correct/quiz.questions.length)*100);
-      app.innerHTML = `
-        <div>
+      if(!q){
+        const rate = Math.round((correct/quiz.questions.length)*100);
+        app.innerHTML = `
           <h2>結果</h2>
           <p>正解：<b>${correct}</b> / ${quiz.questions.length}（${rate}%）</p>
-          <div class="row">
-            <button class="smallbtn" onclick="restart()">もう一度</button>
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    const label = formatRefLabel(q);
-    app.insertAdjacentHTML("beforeend", `
-      <div>
-        <div class="muted">${idx+1} / ${quiz.questions.length}　|　${label}</div>
-        <h2 style="margin:8px 0 10px">${safeText(q.question)}</h2>
-      </div>
-    `);
-
-    q.choices.forEach((c, i) => {
-      const b = document.createElement("button");
-      b.textContent = `${i+1}. ${c}`;
-      b.onclick = () => choose(i, b);
-      app.appendChild(b);
-    });
-
-    app.insertAdjacentHTML("beforeend", `<div id="fb" class="card" style="display:none"></div>`);
-    app.insertAdjacentHTML("beforeend", `
-      <div class="row">
-        <button class="smallbtn" id="next" style="display:none" onclick="next()">次へ</button>
-      </div>
-    `);
-  }
-
-  function choose(i, btn){
-    if(answered) return;
-    answered = true;
-
-    const q = quiz.questions[idx];
-    const fb = document.getElementById("fb");
-    const nextBtn = document.getElementById("next");
-
-    const ok = (i === q.answerIndex);
-    if(ok) correct++;
-
-    if(ok) btn.classList.add("ok"); else btn.classList.add("ng");
-
-    fb.style.display = "block";
-    fb.innerHTML = `
-      <h3 style="margin:0 0 6px">${ok ? "正解" : "不正解"}</h3>
-      <p class="muted" style="margin:0 0 8px">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
-      <p style="margin:0">${safeText(q.explanation)}</p>
-    `;
-    nextBtn.style.display = "inline-block";
-  }
-
-  window.next = function(){ idx++; answered = false; render(); }
-  window.restart = function(){ idx = 0; correct = 0; answered = false; render(); }
-
-  async function init(){
-    try{
-      const res = await fetch(DATA_URL, { cache: "no-store" });
-      quiz = await res.json();
-
-      try{
-        const r = await fetch("./ifsa_headings.json", { cache: "no-store" });
-        if(r.ok) headings = await r.json();
-      }catch(_e){
-        headings = null;
+          <button class="smallbtn" onclick="restart()">もう一度</button>
+        `;
+        return;
       }
 
+      app.insertAdjacentHTML("beforeend", `
+        <div class="muted">${idx+1} / ${quiz.questions.length}</div>
+        <h2>${safeText(q.question)}</h2>
+      `);
+
+      q.choices.forEach((c, i) => {
+        const b = document.createElement("button");
+        b.textContent = `${i+1}. ${c}`;
+        b.onclick = () => choose(i, b);
+        app.appendChild(b);
+      });
+
+      app.insertAdjacentHTML("beforeend", `
+        <div id="fb" class="card" style="display:none"></div>
+        <button id="next" class="smallbtn" style="display:none" onclick="next()">次へ</button>
+      `);
+    }
+
+    function choose(i, btn){
+      if(answered) return;
+      answered = true;
+      const q = quiz.questions[idx];
+      const fb = document.getElementById("fb");
+      const nextBtn = document.getElementById("next");
+      const ok = (i === q.answerIndex);
+      if(ok) correct++;
+      btn.classList.add(ok ? "ok" : "ng");
+      fb.style.display = "block";
+      fb.innerHTML = `
+        <h3>${ok ? "正解" : "不正解"}</h3>
+        <p class="muted">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
+        <p>${safeText(q.explanation)}</p>
+      `;
+      nextBtn.style.display = "inline-block";
+    }
+
+    window.next = () => { idx++; answered = false; render(); }
+    window.restart = () => { idx = 0; correct = 0; answered = false; render(); }
+
+    async function init(){
+      const res = await fetch(DATA_URL, { cache:"no-store" });
+      quiz = await res.json();
       setPageTitle();
       render();
-    }catch(e){
-      // fail silently: keep base title; no UI noise
-      document.title = "#自主基準クイズ";
-      if(titleEl) titleEl.textContent = "#自主基準クイズ";
-      console.error(e);
     }
-  }
-
-  init();
-</script>
+    init();
+  </script>
 </body>
 </html>
