@@ -10,14 +10,21 @@
     .muted{color:#666;font-size:0.92em}
     button{padding:10px 12px;border-radius:10px;border:1px solid #ccc;background:#fff;cursor:pointer;text-align:left;width:100%;margin:6px 0}
     button:hover{background:#f6f6f6}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .smallbtn{width:auto}
+    .ok{border-color:#2f855a}
+    .ng{border-color:#c53030}
 
-    @media (max-width: 480px){
-      button{font-size:17px;line-height:1.4;padding:12px 10px;}
-    }
-    @media (pointer: coarse) and (min-width: 768px){
-      button{font-size:18px;line-height:1.6;padding:14px 12px;}
+    /* スマホ向け */
+    @media (max-width: 480px) {
+      button { font-size: 17px; line-height: 1.4; padding: 12px 10px; }
     }
 
+    /* iPad / タブレット向け */
+    @media (pointer: coarse) and (min-width: 768px) {
+      button { font-size: 18px; line-height: 1.6; padding: 14px 12px; }
+    }
+  
     /* 閲覧モード：disabledでも黒表示 */
     button:disabled{
       color:#000;
@@ -25,9 +32,173 @@
       background:#fff;
       border-color:#ccc;
     }
+
   </style>
 </head>
 <body>
-<h1>#自主基準クイズ（前文）</h1>
+  <h1 id="title">#自主基準クイズ（前文）</h1>
+  <p class="muted" id="subtitle">学習用クイズ。全8問、1問ずつ進みます。</p>
+
+  <div id="app" class="card"></div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const MODE = (params.get("mode") || "quiz").toLowerCase();
+    const IS_VIEW = (MODE === "view" || MODE === "read");
+
+    const DATA_URL = "./quiz_preamble_8.json";
+    let quiz, idx = 0, correct = 0, answered = false;
+
+    const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
+    const app = document.getElementById("app");
+    const titleEl = document.getElementById("title");
+    const subtitleEl = document.getElementById("subtitle");
+
+    function safeText(s){ return String(s ?? ""); }
+
+    async function init(){
+      const res = await fetch(DATA_URL, { cache: "no-store" });
+      quiz = await res.json();
+
+      const qt = (quiz && typeof quiz.title === "string") ? quiz.title.trim() : "";
+      if(qt){
+        document.title = `#自主基準クイズ（${qt}）`;
+        if(titleEl) titleEl.textContent = `#自主基準クイズ（${qt}）`;
+      }else{
+        document.title = "#自主基準クイズ（前文）";
+        if(titleEl) titleEl.textContent = "#自主基準クイズ（前文）";
+      }
+
+      if(subtitleEl){
+        subtitleEl.textContent = IS_VIEW
+          ? "閲覧モード。必要に応じて正解／解説を表示します。"
+          : "回答モード。全8問、1問ずつ進みます。";
+      }
+
+      render();
+    }
+
+    function render(){
+      const q = quiz.questions[idx];
+      app.innerHTML = "";
+
+      if(!q){
+        if(IS_VIEW){
+          app.appendChild(el(`
+            <div>
+              <h2>最後まで到達</h2>
+              <div class="row">
+                <button class="smallbtn" onclick="restart()">最初へ</button>
+                <button class="smallbtn" onclick="prev()">前へ</button>
+              </div>
+            </div>
+          `));
+          return;
+        }
+
+        const rate = Math.round((correct/quiz.questions.length)*100);
+        app.appendChild(el(`
+          <div>
+            <h2>結果</h2>
+            <p>正解：<b>${correct}</b> / ${quiz.questions.length}（${rate}%）</p>
+            <div class="row">
+              <button class="smallbtn" onclick="restart()">もう一度</button>
+            </div>
+          </div>
+        `));
+        return;
+      }
+
+      app.appendChild(el(`
+        <div>
+          <div class="muted">${idx+1} / ${quiz.questions.length}　|　${safeText(q.section)}</div>
+          <h2 style="margin:8px 0 10px">${safeText(q.question)}</h2>
+        </div>
+      `));
+
+      q.choices.forEach((c, i) => {
+        const b = document.createElement("button");
+        b.textContent = `${i+1}. ${c}`;
+
+        if(IS_VIEW){
+          b.disabled = true;
+          b.style.cursor = "default";
+          b.style.opacity = "1";
+        }else{
+          b.onclick = () => choose(i, b);
+        }
+
+        app.appendChild(b);
+      });
+
+      app.appendChild(el(`<div id="fb" class="card" style="display:none"></div>`));
+
+      if(IS_VIEW){
+        app.appendChild(el(`
+          <div class="row">
+            <button class="smallbtn" id="show" onclick="toggleAnswer()">正解／解説を表示</button>
+            <button class="smallbtn" onclick="prev()">前へ</button>
+            <button class="smallbtn" onclick="next()">次へ</button>
+          </div>
+        `));
+      }else{
+        app.appendChild(el(`
+          <div class="row">
+            <button class="smallbtn" id="next" style="display:none" onclick="next()">次へ</button>
+          </div>
+        `));
+      }
+    }
+
+    function choose(i, btn){
+      if(answered) return;
+      answered = true;
+
+      const q = quiz.questions[idx];
+      const fb = document.getElementById("fb");
+      const nextBtn = document.getElementById("next");
+
+      const ok = (i === q.answerIndex);
+      if(ok) correct++;
+
+      if(ok) btn.classList.add("ok"); else btn.classList.add("ng");
+
+      fb.style.display = "block";
+      fb.innerHTML = `
+        <h3 style="margin:0 0 6px">${ok ? "正解" : "不正解"}</h3>
+        <p class="muted" style="margin:0 0 8px">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
+        <p style="margin:0">${safeText(q.explanation)}</p>
+      `;
+      nextBtn.style.display = "inline-block";
+    }
+
+    function toggleAnswer(){
+      const q = quiz.questions[idx];
+      const fb = document.getElementById("fb");
+      const showBtn = document.getElementById("show");
+      if(!fb || !q) return;
+
+      const opened = (fb.style.display !== "none");
+      if(opened){
+        fb.style.display = "none";
+        if(showBtn) showBtn.textContent = "正解／解説を表示";
+        return;
+      }
+
+      fb.style.display = "block";
+      fb.innerHTML = `
+        <h3 style="margin:0 0 6px">正解</h3>
+        <p class="muted" style="margin:0 0 8px">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
+        <p style="margin:0">${safeText(q.explanation)}</p>
+      `;
+      if(showBtn) showBtn.textContent = "正解／解説を隠す";
+    }
+
+    function next(){ idx++; answered = false; render(); }
+    function prev(){ idx = Math.max(0, idx - 1); answered = false; render(); }
+    function restart(){ idx = 0; correct = 0; answered = false; render(); }
+
+    init();
+  </script>
 </body>
 </html>
