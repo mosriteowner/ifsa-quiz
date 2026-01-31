@@ -33,11 +33,22 @@
       border-color:#ccc;
     }
 
+  
+    /* モード切替バー */
+    .modebar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+    .modepill{width:auto}
+
   </style>
 </head>
 <body>
   <h1 id="title">#自主基準クイズ（前文）</h1>
   <p class="muted" id="subtitle">学習用クイズ。全8問、1問ずつ進みます。</p>
+
+  <div class="modebar" id="modebar" style="display:none">
+    <button class="smallbtn modepill" id="modeLabel" disabled>モード</button>
+    <button class="smallbtn modepill" id="modeToggle" type="button">切替</button>
+  </div>
+
 
   <div id="app" class="card"></div>
 
@@ -46,7 +57,35 @@
     const MODE = (params.get("mode") || "quiz").toLowerCase();
     const IS_VIEW = (MODE === "view" || MODE === "read");
 
-    const DATA_URL = "./quiz_preamble_8.json";
+    
+
+    function setMode(newMode){
+      const p = new URLSearchParams(location.search);
+      if(newMode){
+        p.set("mode", newMode);
+      }else{
+        p.delete("mode");
+      }
+      const qs = p.toString();
+      location.search = qs ? ("?" + qs) : "";
+    }
+
+    function toggleMode(){
+      setMode(IS_VIEW ? "quiz" : "view");
+    }
+
+    function updateModeBar(){
+      const bar = document.getElementById("modebar");
+      const label = document.getElementById("modeLabel");
+      const toggle = document.getElementById("modeToggle");
+      if(!bar || !label || !toggle) return;
+      bar.style.display = "flex";
+      label.textContent = IS_VIEW ? "閲覧モード" : "回答モード";
+      toggle.textContent = IS_VIEW ? "回答へ切替" : "閲覧へ切替";
+      toggle.onclick = toggleMode;
+    }
+
+const DATA_URL = "./quiz_preamble_8.json";
     let quiz, idx = 0, correct = 0, answered = false;
 
     const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; };
@@ -75,7 +114,9 @@
           : "回答モード。全8問、1問ずつ進みます。";
       }
 
-      render();
+      
+      updateModeBar();
+render();
     }
 
     function render(){
