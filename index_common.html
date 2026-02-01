@@ -15,17 +15,13 @@
     .ok{border-color:#2f855a}
     .ng{border-color:#c53030}
 
-    /* スマホ向け */
     @media (max-width: 480px) {
       button { font-size: 17px; line-height: 1.4; padding: 12px 10px; }
     }
-
-    /* iPad / タブレット向け */
     @media (pointer: coarse) and (min-width: 768px) {
       button { font-size: 18px; line-height: 1.6; padding: 14px 12px; }
     }
-  
-    /* 閲覧モード：disabledでも黒表示 */
+
     button:disabled{
       color:#000;
       opacity:1;
@@ -33,11 +29,8 @@
       border-color:#ccc;
     }
 
-  
-    /* モード切替バー */
     .modebar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
     .modepill{width:auto}
-
   </style>
 </head>
 <body>
@@ -49,273 +42,199 @@
     <button class="smallbtn modepill" id="modeToggle" type="button">切替</button>
   </div>
 
-
   <div id="app" class="card"></div>
 
-  <script>
-  // URL例: index_common.html?data=quiz_ch1.json&mode=view
-  const params = new URLSearchParams(location.search);
-  const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
+<script>
+const params = new URLSearchParams(location.search);
+const DATA_URL = params.get("data") || "./quiz_preamble_8.json";
+const MODE = (params.get("mode") || "quiz").toLowerCase();
+const IS_VIEW = (MODE === "view" || MODE === "read");
 
-  // mode: quiz(既定) / view(read)
-  const MODE = (params.get("mode") || "quiz").toLowerCase();
-  const IS_VIEW = (MODE === "view" || MODE === "read");
+function setMode(newMode){
+  const p = new URLSearchParams(location.search);
+  if(newMode){ p.set("mode", newMode); } else { p.delete("mode"); }
+  location.search = p.toString() ? ("?" + p.toString()) : "";
+}
+function toggleMode(){ setMode(IS_VIEW ? "quiz" : "view"); }
 
-  
+function updateModeBar(){
+  const bar = document.getElementById("modebar");
+  const label = document.getElementById("modeLabel");
+  const toggle = document.getElementById("modeToggle");
+  bar.style.display = "flex";
+  label.textContent = IS_VIEW ? "閲覧モード" : "回答モード";
+  toggle.textContent = IS_VIEW ? "回答へ切替" : "閲覧へ切替";
+  toggle.onclick = toggleMode;
+}
 
-  function setMode(newMode){
-    const p = new URLSearchParams(location.search);
-    if(newMode){
-      p.set("mode", newMode);
-    }else{
-      p.delete("mode");
-    }
-    // data等の既存パラメータは維持
-    const qs = p.toString();
-    location.search = qs ? ("?" + qs) : "";
+let quiz=null, headings=null, idx=0, correct=0, answered=false;
+const MARU=[null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+const app=document.getElementById("app");
+const titleEl=document.getElementById("title");
+const subtitleEl=document.getElementById("subtitle");
+
+function safeText(s){return String(s??"");}
+
+/* ===== 追加：選択肢シャッフル ===== */
+function shuffleChoices(choices, answerIndex){
+  const packed = choices.map((text,i)=>({text,i}));
+  for(let j=packed.length-1;j>0;j--){
+    const k=Math.floor(Math.random()*(j+1));
+    [packed[j],packed[k]]=[packed[k],packed[j]];
   }
+  return {
+    newChoices: packed.map(p=>p.text),
+    newAnswerIndex: packed.findIndex(p=>p.i===answerIndex)
+  };
+}
+/* ================================= */
 
-  function toggleMode(){
-    setMode(IS_VIEW ? "quiz" : "view");
+function chapterFromDataUrl(){
+  const m = DATA_URL.match(/quiz_ch(\d+)\.json/);
+  return m ? parseInt(m[1],10) : null;
+}
+function getChapterTitle(ch){
+  return headings?.chapters?.[String(ch)]?.title || "";
+}
+function getSectionTitle(ch,sec){
+  return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
+}
+
+function setPageTitle(){
+  const ch = chapterFromDataUrl();
+  if(ch && headings?.chapters?.[String(ch)]){
+    const t = headings.chapters[String(ch)].title || "";
+    const label = t ? `第${ch}章 ${t}` : `第${ch}章`;
+    document.title = `#自主基準クイズ（${label}）`;
+    titleEl.textContent = `#自主基準クイズ（${label}）`;
+    return;
   }
+  document.title="#自主基準クイズ";
+  titleEl.textContent="#自主基準クイズ";
+}
+function setSubtitle(){
+  subtitleEl.textContent = IS_VIEW
+    ? "閲覧モード。必要に応じて正解／解説を表示します。"
+    : "回答モード。1問ずつ進みます。";
+}
 
-  function updateModeBar(){
-    const bar = document.getElementById("modebar");
-    const label = document.getElementById("modeLabel");
-    const toggle = document.getElementById("modeToggle");
-    if(!bar || !label || !toggle) return;
-    bar.style.display = "flex";
-    label.textContent = IS_VIEW ? "閲覧モード" : "回答モード";
-    toggle.textContent = IS_VIEW ? "回答へ切替" : "閲覧へ切替";
-    toggle.onclick = toggleMode;
-  }
-
-let quiz = null, headings = null, idx = 0, correct = 0, answered = false;
-
-  const MARU = [null,"①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
-
-  const app = document.getElementById("app");
-  const titleEl = document.getElementById("title");
-  const subtitleEl = document.getElementById("subtitle");
-
-  function safeText(s){ return String(s ?? ""); }
-
-  function chapterFromDataUrl(){
-    const m = DATA_URL.match(/quiz_ch(\d+)\.json/);
-    return m ? parseInt(m[1], 10) : null;
-  }
-
-  function getChapterTitle(ch){
-    return headings?.chapters?.[String(ch)]?.title || "";
-  }
-  function getSectionTitle(ch, sec){
-    return headings?.chapters?.[String(ch)]?.sections?.[String(sec)] || "";
-  }
-
-  function setPageTitle(){
-    const ch = chapterFromDataUrl();
-    if(ch && headings?.chapters?.[String(ch)]){
-      const t = headings.chapters[String(ch)].title || "";
-      const label = t ? `第${ch}章 ${t}` : `第${ch}章`;
-      document.title = `#自主基準クイズ（${label}）`;
-      if(titleEl) titleEl.textContent = `#自主基準クイズ（${label}）`;
-      return;
-    }
-    const qt = (quiz && typeof quiz.title === "string") ? quiz.title.trim() : "";
-    if(qt){
-      document.title = `#自主基準クイズ（${qt}）`;
-      if(titleEl) titleEl.textContent = `#自主基準クイズ（${qt}）`;
-      return;
-    }
-    document.title = "#自主基準クイズ";
-    if(titleEl) titleEl.textContent = "#自主基準クイズ";
-  }
-
-  function setSubtitle(){
-    if(!subtitleEl) return;
-    subtitleEl.textContent = IS_VIEW
-      ? "閲覧モード。必要に応じて正解／解説を表示します。"
-      : "回答モード。1問ずつ進みます。";
-  }
-
-  function formatRefLabel(q){
-    const r = q?.ref;
-    if(r && Number.isInteger(r.chapter)){
-      const ch = r.chapter;
-      const chTitle = getChapterTitle(ch);
-      const chPart = `第${ch}章` + (chTitle ? ` ${chTitle}` : "");
-
-      // 第8章は条番号（section）が存在しない（(1)(2)のみ）
-      if(ch === 8 || !Number.isInteger(r.section)){
-        let s = chPart;
-        if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
-        if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
-        return s.trim();
-      }
-
-      const sec = r.section;
-      const secTitle = getSectionTitle(ch, sec);
-      let s = `${chPart} / ${sec}.` + (secTitle ? ` ${secTitle}` : "");
-      if(Number.isInteger(r.subsection)) s += ` (${r.subsection})`;
-      if(Number.isInteger(r.item)) s += ` ${MARU[r.item] || ""}`;
+function formatRefLabel(q){
+  const r=q?.ref;
+  if(r && Number.isInteger(r.chapter)){
+    const ch=r.chapter;
+    const chTitle=getChapterTitle(ch);
+    let s=`第${ch}章`+(chTitle?` ${chTitle}`:"");
+    if(ch===8||!Number.isInteger(r.section)){
+      if(Number.isInteger(r.subsection)) s+=` (${r.subsection})`;
+      if(Number.isInteger(r.item)) s+=` ${MARU[r.item]||""}`;
       return s.trim();
     }
-    return safeText(q?.section).trim();
+    const sec=r.section;
+    const secTitle=getSectionTitle(ch,sec);
+    s+=` / ${sec}.`+(secTitle?` ${secTitle}`:"");
+    if(Number.isInteger(r.subsection)) s+=` (${r.subsection})`;
+    if(Number.isInteger(r.item)) s+=` ${MARU[r.item]||""}`;
+    return s.trim();
+  }
+  return safeText(q?.section).trim();
+}
+
+function render(){
+  const q = quiz.questions[idx];
+  app.innerHTML="";
+
+  if(!q){
+    app.innerHTML=IS_VIEW
+      ? `<h2>最後まで到達</h2><button onclick="restart()">最初へ</button>`
+      : `<h2>結果</h2><p>正解 ${correct}/${quiz.questions.length}</p><button onclick="restart()">もう一度</button>`;
+    return;
   }
 
-  function render(){
-    if(!app || !quiz || !quiz.questions) return;
+  /* ★ シャッフル（モード非依存） */
+  if(!q._shuffled){
+    const r = shuffleChoices(q.choices, q.answerIndex);
+    q.choices = r.newChoices;
+    q.answerIndex = r.newAnswerIndex;
+    q._shuffled = true;
+  }
 
-    const q = quiz.questions[idx];
-    app.innerHTML = "";
+  app.insertAdjacentHTML("beforeend",`
+    <div class="muted">${idx+1}/${quiz.questions.length} | ${formatRefLabel(q)}</div>
+    <h2>${safeText(q.question)}</h2>
+  `);
 
-    if(!q){
-      if(IS_VIEW){
-        app.innerHTML = `
-          <div>
-            <h2>最後まで到達</h2>
-            <div class="row">
-              <button class="smallbtn" onclick="restart()">最初へ</button>
-              <button class="smallbtn" onclick="prev()">前へ</button>
-            </div>
-          </div>
-        `;
-        return;
-      }
-      const rate = Math.round((correct/quiz.questions.length)*100);
-      app.innerHTML = `
-        <div>
-          <h2>結果</h2>
-          <p>正解：<b>${correct}</b> / ${quiz.questions.length}（${rate}%）</p>
-          <div class="row">
-            <button class="smallbtn" onclick="restart()">もう一度</button>
-          </div>
-        </div>
-      `;
-      return;
-    }
+  q.choices.forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.textContent=`${i+1}. ${c}`;
+    if(IS_VIEW){ b.disabled=true; }
+    else{ b.onclick=()=>choose(i,b); }
+    app.appendChild(b);
+  });
 
-    const label = formatRefLabel(q);
-    app.insertAdjacentHTML("beforeend", `
-      <div>
-        <div class="muted">${idx+1} / ${quiz.questions.length}　|　${label}</div>
-        <h2 style="margin:8px 0 10px">${safeText(q.question)}</h2>
+  app.insertAdjacentHTML("beforeend",`<div id="fb" class="card" style="display:none"></div>`);
+
+  if(IS_VIEW){
+    app.insertAdjacentHTML("beforeend",`
+      <div class="row">
+        <button class="smallbtn" onclick="toggleAnswer()">正解／解説</button>
+        <button class="smallbtn" onclick="prev()">前へ</button>
+        <button class="smallbtn" onclick="next()">次へ</button>
       </div>
     `);
-
-    q.choices.forEach((c, i) => {
-      const b = document.createElement("button");
-      b.textContent = `${i+1}. ${c}`;
-
-      if(IS_VIEW){
-        b.disabled = true;
-        b.style.cursor = "default";
-        b.style.opacity = "1";
-      }else{
-        b.onclick = () => choose(i, b);
-      }
-      app.appendChild(b);
-    });
-
-    app.insertAdjacentHTML("beforeend", `<div id="fb" class="card" style="display:none"></div>`);
-
-    if(IS_VIEW){
-      app.insertAdjacentHTML("beforeend", `
-        <div class="row">
-          <button class="smallbtn" id="show" onclick="toggleAnswer()">正解／解説を表示</button>
-          <button class="smallbtn" onclick="prev()">前へ</button>
-          <button class="smallbtn" onclick="next()">次へ</button>
-        </div>
-      `);
-    }else{
-      app.insertAdjacentHTML("beforeend", `
-        <div class="row">
-          <button class="smallbtn" id="next" style="display:none" onclick="next()">次へ</button>
-        </div>
-      `);
-    }
+  }else{
+    app.insertAdjacentHTML("beforeend",`
+      <div class="row">
+        <button id="next" class="smallbtn" style="display:none" onclick="next()">次へ</button>
+      </div>
+    `);
   }
+}
 
-  function choose(i, btn){
-    if(answered) return;
-    answered = true;
+function choose(i,btn){
+  if(answered) return;
+  answered=true;
+  const q=quiz.questions[idx];
+  const fb=document.getElementById("fb");
+  const ok=(i===q.answerIndex);
+  if(ok) correct++;
+  btn.classList.add(ok?"ok":"ng");
+  fb.style.display="block";
+  fb.innerHTML=`
+    <h3>${ok?"正解":"不正解"}</h3>
+    <p class="muted">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
+    <p>${safeText(q.explanation)}</p>
+  `;
+  const n=document.getElementById("next");
+  if(n) n.style.display="inline-block";
+}
 
-    const q = quiz.questions[idx];
-    const fb = document.getElementById("fb");
-    const nextBtn = document.getElementById("next");
-
-    const ok = (i === q.answerIndex);
-    if(ok) correct++;
-
-    if(ok) btn.classList.add("ok"); else btn.classList.add("ng");
-
-    fb.style.display = "block";
-    fb.innerHTML = `
-      <h3 style="margin:0 0 6px">${ok ? "正解" : "不正解"}</h3>
-      <p class="muted" style="margin:0 0 8px">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
-      <p style="margin:0">${safeText(q.explanation)}</p>
+function toggleAnswer(){
+  const q=quiz.questions[idx];
+  const fb=document.getElementById("fb");
+  fb.style.display=fb.style.display==="none"?"block":"none";
+  if(fb.style.display==="block"){
+    fb.innerHTML=`
+      <h3>正解</h3>
+      <p class="muted">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
+      <p>${safeText(q.explanation)}</p>
     `;
-    if(nextBtn) nextBtn.style.display = "inline-block";
   }
+}
 
-  window.next = function(){ idx++; answered = false; render(); }
-  window.prev = function(){ idx = Math.max(0, idx - 1); answered = false; render(); }
-  window.restart = function(){ idx = 0; correct = 0; answered = false; render(); }
+window.next=()=>{idx++;answered=false;render();}
+window.prev=()=>{idx=Math.max(0,idx-1);answered=false;render();}
+window.restart=()=>{idx=0;correct=0;answered=false;render();}
 
-  window.toggleAnswer = function(){
-    const q = quiz.questions[idx];
-    const fb = document.getElementById("fb");
-    const showBtn = document.getElementById("show");
-    if(!fb || !q) return;
-
-    const opened = (fb.style.display !== "none");
-    if(opened){
-      fb.style.display = "none";
-      if(showBtn) showBtn.textContent = "正解／解説を表示";
-      return;
-    }
-
-    fb.style.display = "block";
-    fb.innerHTML = `
-      <h3 style="margin:0 0 6px">正解</h3>
-      <p class="muted" style="margin:0 0 8px">正解：${q.answerIndex+1}. ${q.choices[q.answerIndex]}</p>
-      <p style="margin:0">${safeText(q.explanation)}</p>
-    `;
-    if(showBtn) showBtn.textContent = "正解／解説を隠す";
-  }
-
-  async function init(){
-    try{
-      const res = await fetch(DATA_URL, { cache: "no-store" });
-      quiz = await res.json();
-
-      try{
-        const r = await fetch("./ifsa_headings.json", { cache: "no-store" });
-        if(r.ok) headings = await r.json();
-      }catch(_e){
-        headings = null;
-      }
-
-      setPageTitle();
-      setSubtitle();
-            updateModeBar();
-render();
-    }catch(e){
-      document.title = "#自主基準クイズ";
-      if(titleEl) titleEl.textContent = "#自主基準クイズ";
-      if(subtitleEl) subtitleEl.textContent = "";
-      console.error(e);
-    }
-  }
-
-  init();
-  </script>
-
-  <div style="margin: 3em auto 1em; text-align: center; font-size: 0.85em; color: #666; max-width: 90%;">
-  本クイズはIFSA書籍『遺体衛生保全概論』掲載の自主基準を基にした学習用です。<br>
-  著作権はIFSAに帰属。要請あれば即時削除します。<br>
-  全章のクイズ・詳細説明はnote記事で → <a href="https://note.com/mosriteowner/n/nd9b7a04f826e" style="color: #666; text-decoration: underline;">note.com/mosriteowner/n/nd9b7a04f826e</a>
-</div>
-
+async function init(){
+  const r=await fetch(DATA_URL,{cache:"no-store"});
+  quiz=await r.json();
+  try{
+    const h=await fetch("./ifsa_headings.json",{cache:"no-store"});
+    if(h.ok) headings=await h.json();
+  }catch{}
+  setPageTitle(); setSubtitle(); updateModeBar(); render();
+}
+init();
+</script>
 </body>
 </html>
