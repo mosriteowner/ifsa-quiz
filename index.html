@@ -143,9 +143,12 @@
       return;
     }
 
-    // ★ シャッフル（閲覧/回答どちらでも、1問1回）
+    // ★ シャッフル（1周内は固定／restartで再シャッフル）
+    if(!q._orig){
+      q._orig = { choices: q.choices.slice(), answerIndex: q.answerIndex };
+    }
     if(!q._shuffled){
-      const r = shuffleChoices(q.choices, q.answerIndex);
+      const r = shuffleChoices(q._orig.choices, q._orig.answerIndex);
       q.choices = r.newChoices;
       q.answerIndex = r.newAnswerIndex;
       q._shuffled = true;
@@ -215,7 +218,22 @@
 
   window.next = function(){ idx++; answered = false; render(); }
   window.prev = function(){ idx = Math.max(0, idx - 1); answered = false; render(); }
-  window.restart = function(){ idx = 0; correct = 0; answered = false; render(); }
+  window.restart = function(){
+    idx = 0; correct = 0; answered = false;
+
+    // ★ 全問リセット：次の周回で再シャッフル
+    if(quiz && quiz.questions){
+      quiz.questions.forEach(q=>{
+        if(q && q._orig){
+          q.choices = q._orig.choices.slice();
+          q.answerIndex = q._orig.answerIndex;
+        }
+        if(q) q._shuffled = false;
+      });
+    }
+
+    render();
+  }
 
   window.toggleAnswer = function(){
     const q = quiz.questions[idx];
